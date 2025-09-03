@@ -4,7 +4,7 @@ import { PECExtractor } from './pecExtractor';
 import { ParseResult, ConfigObject, PEC } from '../types/network';
 
 export class NetworkAnalyzer {
-  private configParser: ConfigParser;
+  private configParser!: ConfigParser;
   private trie: TrieTree;
   private pecExtractor: PECExtractor;
 
@@ -14,7 +14,7 @@ export class NetworkAnalyzer {
   }
 
   // 分析配置文件
-  public analyzeConfig(configContent: string, routerName?: string): ParseResult {
+  public analyzeConfig(configContent: string): ParseResult {
     // 解析配置
     this.configParser = new ConfigParser(configContent);
     const configObjects = this.configParser.parse();
@@ -27,7 +27,7 @@ export class NetworkAnalyzer {
 
     return {
       configObjects,
-      trie: this.trie,
+      trie: this.trie.root,
       pecs
     };
   }

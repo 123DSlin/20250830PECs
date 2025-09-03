@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ParseResult, PEC, ConfigObject } from '../types/network';
+import { ParseResult } from '../types/network';
+import { TrieTreeVisualizer } from './TrieTreeVisualizer';
 
 interface AnalysisResultsProps {
   results: ParseResult;
@@ -226,26 +227,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ results }) => 
 
         {activeTab === 'trie' && (
           <div className="trie-tab">
-            <h3>Trie Tree Structure</h3>
-            <p>This tab would show a visual representation of the Trie tree structure.</p>
-            <p>For now, showing the extracted PECs which represent the Trie tree traversal results.</p>
-            <div className="trie-preview">
-              {results.pecs.slice(0, 10).map((pec) => (
-                <div key={pec.id} className="trie-node">
-                  <span className="node-range">
-                    {pec.range.start} - {pec.range.end}
-                  </span>
-                  <span className="node-configs">
-                    {pec.configObjects.length} configs
-                  </span>
-                </div>
-              ))}
-              {results.pecs.length > 10 && (
-                <div className="trie-more">
-                  ... and {results.pecs.length - 10} more nodes
-                </div>
-              )}
-            </div>
+            <TrieTreeVisualizer trie={results.trie} />
           </div>
         )}
       </div>

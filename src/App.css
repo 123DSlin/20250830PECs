@@ -435,38 +435,137 @@ body {
   font-size: 0.9rem;
 }
 
-/* Trie 树预览 */
-.trie-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+/* Trie 树可视化器 */
+.trie-tree-visualizer {
+  padding: 1rem;
+}
+
+.tree-container {
+  margin: 1rem 0;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #f8f9fa;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 .trie-node {
-  background: #f8f9fa;
-  border: 1px solid #e1e5e9;
-  border-radius: 6px;
-  padding: 0.75rem;
+  margin: 0.25rem 0;
+}
+
+.node-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border: 1px solid #e1e5e9;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.node-range {
+.node-content:hover {
+  background: #f0f0f0;
+  transform: translateX(2px);
+}
+
+.node-content.has-children {
+  background: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.node-content.has-children:hover {
+  background: #bbdefb;
+}
+
+.node-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.node-prefix {
   font-family: monospace;
-  font-weight: 500;
+  font-weight: 600;
+  color: #333;
 }
 
 .node-configs {
+  font-size: 0.8rem;
   color: #666;
+  background: #f5f5f5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.expand-icon {
+  font-size: 1.2rem;
+  color: #2196f3;
+  font-weight: bold;
+}
+
+.node-children {
+  margin-left: 2rem;
+  border-left: 2px solid #e1e5e9;
+  padding-left: 1rem;
+}
+
+/* 不同层级的样式 */
+.level-0 .node-content { border-left: 4px solid #4caf50; }
+.level-1 .node-content { border-left: 4px solid #2196f3; }
+.level-2 .node-content { border-left: 4px solid #ff9800; }
+.level-3 .node-content { border-left: 4px solid #9c27b0; }
+.level-4 .node-content { border-left: 4px solid #f44336; }
+.level-5 .node-content { border-left: 4px solid #795548; }
+
+.tree-legend {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e1e5e9;
+}
+
+.tree-legend h4 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.tree-legend ul {
+  list-style: none;
+  padding: 0;
+}
+
+.tree-legend li {
+  padding: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-node {
+  background: #e3f2fd;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-family: monospace;
   font-size: 0.9rem;
 }
 
-.trie-more {
-  text-align: center;
-  color: #666;
-  font-style: italic;
-  padding: 1rem;
+.legend-expand {
+  background: #fff3e0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #ff9800;
+}
+
+.legend-level {
+  background: #f3e5f5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
 }
 
 /* 页脚 */
@@ -512,4 +611,430 @@ body {
     gap: 0.5rem;
     align-items: stretch;
   }
+}
+
+.config-details {
+  font-size: 1rem;
+  color: #333;
+  font-family: 'Courier New', monospace;
+  background: #fff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 2px solid #e3f2fd;
+  font-weight: 600;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 横向 Trie 树样式 */
+.trie-tree-visualizer-horizontal {
+  padding: 1rem;
+}
+
+.tree-container-horizontal {
+  margin: 1rem 0;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 2rem;
+  background: #f8f9fa;
+  overflow-x: auto;
+  min-height: 400px;
+}
+
+.tree-root {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: max-content;
+}
+
+.trie-node-horizontal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 1rem;
+  position: relative;
+}
+
+.node-content-horizontal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.node-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.node-circle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.bit-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.config-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff5722;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.bit-branches {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.bit-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.child-node {
+  margin-top: 1rem;
+}
+
+.terminal-node {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 改进的连接线样式 */
+.branch-line {
+  width: 4px;
+  height: 60px;
+  background: linear-gradient(to bottom, #2196f3, #1976d2);
+  position: relative;
+  border-radius: 2px;
+  box-shadow: 0 3px 6px rgba(33, 150, 243, 0.4);
+}
+
+.branch-line::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -8px;
+  width: 20px;
+  height: 4px;
+  background: linear-gradient(to right, #2196f3, #1976d2);
+  border-radius: 2px;
+  box-shadow: 0 3px 6px rgba(33, 150, 243, 0.4);
+}
+
+/* 改进的位值标签样式 */
+.bit-value {
+  background: linear-gradient(135deg, #333 0%, #555 100%);
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: bold;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  position: relative;
+}
+
+.bit-value::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #2196f3, #ff5722);
+  border-radius: 50%;
+  z-index: -1;
+  opacity: 0.7;
+}
+
+/* 改进的配置信息样式 */
+.config-info {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+  border: 3px solid #2196f3;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 280px;
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.2);
+  position: relative;
+  transform: translateY(-10px);
+}
+
+.config-info::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 12px solid #2196f3;
+}
+
+.config-info::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-bottom: 9px solid #fff;
+}
+
+.config-title {
+  font-weight: 800;
+  color: #1976d2;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  background: #333;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 缩放控制样式 */
+.visualizer-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.visualizer-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.visualizer-header p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #e1e5e9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: #f8f9fa;
+  color: #333;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-btn:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.zoom-btn:active {
+  transform: translateY(0);
+}
+
+.zoom-in {
+  background: #d4edda;
+  color: #155724;
+}
+
+.zoom-in:hover {
+  background: #c3e6cb;
+}
+
+.zoom-out {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.zoom-out:hover {
+  background: #f5c6cb;
+}
+
+.zoom-reset {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.zoom-reset:hover {
+  background: #bee5eb;
+}
+
+.zoom-level {
+  font-family: monospace;
+  font-weight: 600;
+  color: #333;
+  min-width: 50px;
+  text-align: center;
+  padding: 0.25rem 0.5rem;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #e1e5e9;
+}
+
+/* 节点显示控制样式 */
+.node-display-controls {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid #e1e5e9;
+}
+
+.control-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+  user-select: none;
+}
+
+.control-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2196f3;
+  cursor: pointer;
+}
+
+.control-label span {
+  font-weight: 500;
+}
+
+/* 视口样式 */
+.tree-viewport {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  overflow: hidden;
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.tree-root {
+  transition: transform 0.1s ease;
+  will-change: transform;
+}
+
+/* 图例样式更新 */
+.legend-zoom,
+.legend-pan {
+  color: #2196f3;
+  font-weight: 600;
+}
+
+/* 无数据消息样式 */
+.no-data-message {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.no-data-message p {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+
+.no-data-message p:first-child {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 测试区域样式 */
+.test-section {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.test-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.test-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.test-trie-container {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e1e5e9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

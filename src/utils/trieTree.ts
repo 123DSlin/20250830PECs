@@ -2,7 +2,7 @@ import { TrieNode, Prefix, ConfigObject } from '../types/network';
 import { ipToNumber, numberToIp, getPrefixRange } from './ipUtils';
 
 export class TrieTree {
-  private root: TrieNode;
+  public root: TrieNode;
 
   constructor() {
     this.root = {
@@ -153,9 +153,7 @@ export class TrieTree {
   }
 
   private printNode(node: TrieNode, depth: number): void {
-    const indent = '  '.repeat(depth);
-    const configCount = node.configObjects.length;
-    console.log(`${indent}${node.prefix.network}/${node.prefix.mask} [${configCount} configs]`);
+    // console.log(`${'  '.repeat(depth)}${node.prefix.network}/${node.prefix.mask} [${node.configObjects.length} configs]`);
     
     for (const child of node.children.values()) {
       this.printNode(child, depth + 1);

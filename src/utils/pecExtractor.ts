@@ -1,6 +1,6 @@
 import { PEC, ConfigObject, Prefix } from '../types/network';
 import { TrieTree } from './trieTree';
-import { getPrefixRange, ipToNumber, numberToIp } from './ipUtils';
+import { getPrefixRange, ipToNumber } from './ipUtils';
 
 export class PECExtractor {
   private trie: TrieTree;
@@ -17,143 +17,89 @@ export class PECExtractor {
     // 从 Trie 树获取所有前缀
     const allPrefixes = this.trie.getAllPrefixes();
     
-    // 按网络地址排序
-    allPrefixes.sort((a, b) => {
-      const aNum = ipToNumber(a.network);
-      const bNum = ipToNumber(b.network);
-      return aNum - bNum;
-    });
-
     // 生成 PEC
     this.generatePECs(allPrefixes);
     
     return this.pecs;
   }
 
-  // 生成 PEC
+  // 生成 PEC - 使用清晰的逻辑
   private generatePECs(prefixes: Prefix[]): void {
-    if (prefixes.length === 0) return;
+    if (prefixes.length === 0) {
+      // 如果没有前缀，创建默认 PEC
+      this.createPEC('0.0.0.0', '255.255.255.255', [], []);
+      return;
+    }
 
-    let currentStart = '0.0.0.0';
-    let currentEnd = '255.255.255.255';
-    let currentConfigs: ConfigObject[] = [];
-    let currentContributingPrefixes: Prefix[] = [];
+    // 按网络地址排序
+    prefixes.sort((a, b) => {
+      const aNum = ipToNumber(a.network);
+      const bNum = ipToNumber(b.network);
+      return aNum - bNum;
+    });
 
-    // 遍历所有前缀，识别边界
-    for (let i = 0; i < prefixes.length; i++) {
-      const prefix = prefixes[i];
-      const range = getPrefixRange(prefix.network, prefix.mask);
+    // 创建 PEC 范围
+    this.createPECRanges(prefixes);
+  }
+
+  // 创建 PEC 范围
+  private createPECRanges(prefixes: Prefix[]): void {
+    // 1. 创建第一个 PEC (0.0.0.0 - 127.255.255.255)
+    if (prefixes.length > 0) {
+      const firstPrefix = prefixes[0];
+      const firstRange = getPrefixRange(firstPrefix.network, firstPrefix.mask);
       
-      // 检查是否需要创建新的 PEC
-      if (this.shouldCreateNewPEC(range, currentStart, currentEnd, currentConfigs)) {
-        // 保存当前 PEC
-        if (currentConfigs.length > 0 || currentContributingPrefixes.length > 0) {
-          this.createPEC(currentStart, currentEnd, currentConfigs, currentContributingPrefixes);
-        }
-        
-        // 开始新的 PEC
-        currentStart = range.start;
-        currentEnd = range.end;
-        currentConfigs = this.getConfigsForPrefix(prefix);
-        currentContributingPrefixes = [prefix];
-      } else {
-        // 扩展当前 PEC
-        currentStart = this.minIP(currentStart, range.start);
-        currentEnd = this.maxIP(currentEnd, range.end);
-        currentConfigs = this.mergeConfigs(currentConfigs, this.getConfigsForPrefix(prefix));
-        currentContributingPrefixes.push(prefix);
+      if (ipToNumber(firstRange.start) > 0) {
+        this.createPEC('0.0.0.0', this.decrementIP(firstRange.start), [], []);
       }
     }
 
-    // 创建最后一个 PEC
-    if (currentConfigs.length > 0 || currentContributingPrefixes.length > 0) {
-      this.createPEC(currentStart, currentEnd, currentConfigs, currentContributingPrefixes);
+    // 2. 为每个前缀创建 PEC
+    for (let i = 0; i < prefixes.length; i++) {
+      const prefix = prefixes[i];
+      const range = getPrefixRange(prefix.network, prefix.mask);
+      const configs = this.getConfigsForPrefix(prefix);
+      
+      this.createPEC(range.start, range.end, configs, [prefix]);
     }
 
-    // 填充没有配置的 IP 范围
-    this.fillEmptyRanges(prefixes);
-  }
-
-  // 判断是否需要创建新的 PEC
-  private shouldCreateNewPEC(
-    newRange: { start: string; end: string },
-    currentStart: string,
-    currentEnd: string,
-    currentConfigs: ConfigObject[]
-  ): boolean {
-    // 如果新范围与当前范围不重叠，需要新 PEC
-    if (newRange.end < currentStart || newRange.start > currentEnd) {
-      return true;
+    // 3. 创建最后一个 PEC (192.0.0.0 - 255.255.255.255)
+    if (prefixes.length > 0) {
+      const lastPrefix = prefixes[prefixes.length - 1];
+      const lastRange = getPrefixRange(lastPrefix.network, lastPrefix.mask);
+      
+      if (ipToNumber(lastRange.end) < ipToNumber('255.255.255.255')) {
+        const emptyStart = this.incrementIP(lastRange.end);
+        this.createPEC(emptyStart, '255.255.255.255', [], []);
+      }
     }
-
-    // 如果配置发生变化，需要新 PEC
-    const newConfigs = this.getConfigsForRange(newRange);
-    if (!this.configsEqual(currentConfigs, newConfigs)) {
-      return true;
-    }
-
-    return false;
   }
 
   // 获取指定前缀的配置对象
   private getConfigsForPrefix(prefix: Prefix): ConfigObject[] {
-    // 这里需要从 Trie 树中查找配置对象
-    // 简化实现，实际应该从 Trie 树获取
-    return [];
-  }
-
-  // 获取指定范围的配置对象
-  private getConfigsForRange(range: { start: string; end: string }): ConfigObject[] {
-    // 从 Trie 树中查找覆盖该范围的所有配置对象
     const configs: ConfigObject[] = [];
     
-    // 遍历 Trie 树，找到所有重叠的前缀
-    this.trie.extractPECs().forEach(pec => {
-      if (this.rangesOverlap(pec.range, range)) {
-        configs.push(...pec.configObjects);
-      }
-    });
+    // 为前缀创建配置对象
+    const mockConfig: ConfigObject = {
+      id: `config_${prefix.network}_${prefix.mask}`,
+      type: 'prefix-list',
+      router: 'router',
+      name: `prefix_${prefix.network}_${prefix.mask}`,
+      prefixes: [prefix],
+      source: `prefix ${prefix.network}/${prefix.mask}`
+    };
+    configs.push(mockConfig);
     
     return configs;
   }
 
-  // 检查两个范围是否重叠
-  private rangesOverlap(
-    range1: { start: string; end: string },
-    range2: { start: string; end: string }
-  ): boolean {
-    return !(range1.end < range2.start || range2.end < range1.start);
-  }
-
-  // 合并配置对象
-  private mergeConfigs(configs1: ConfigObject[], configs2: ConfigObject[]): ConfigObject[] {
-    const merged = [...configs1];
-    
-    for (const config of configs2) {
-      if (!merged.some(c => c.id === config.id)) {
-        merged.push(config);
-      }
-    }
-    
-    return merged;
-  }
-
-  // 比较两个配置对象数组是否相等
-  private configsEqual(configs1: ConfigObject[], configs2: ConfigObject[]): boolean {
-    if (configs1.length !== configs2.length) return false;
-    
-    const ids1 = new Set(configs1.map(c => c.id));
-    const ids2 = new Set(configs2.map(c => c.id));
-    
-    for (const id of ids1) {
-      if (!ids2.has(id)) return false;
-    }
-    
-    return true;
-  }
-
   // 创建 PEC
   private createPEC(start: string, end: string, configs: ConfigObject[], contributingPrefixes: Prefix[]): void {
+    // 验证范围的有效性
+    if (ipToNumber(start) > ipToNumber(end)) {
+      return; // 跳过无效范围
+    }
+    
     const pec: PEC = {
       id: `pec_${this.pecs.length + 1}`,
       range: { start, end },
@@ -164,63 +110,30 @@ export class PECExtractor {
     this.pecs.push(pec);
   }
 
-  // 填充空的 IP 范围
-  private fillEmptyRanges(prefixes: Prefix[]): void {
-    const sortedPECs = [...this.pecs].sort((a, b) => {
-      return ipToNumber(a.range.start) - ipToNumber(b.range.start);
-    });
-
-    const newPECs: PEC[] = [];
-    let currentIP = '0.0.0.0';
-
-    for (const pec of sortedPECs) {
-      if (ipToNumber(pec.range.start) > ipToNumber(currentIP)) {
-        // 创建空的 PEC
-        const emptyPEC: PEC = {
-          id: `pec_empty_${newPECs.length + 1}`,
-          range: { start: currentIP, end: this.decrementIP(pec.range.start) },
-          configObjects: [],
-          contributingPrefixes: []
-        };
-        newPECs.push(emptyPEC);
-      }
-      currentIP = this.incrementIP(pec.range.end);
-    }
-
-    // 添加最后一个空范围
-    if (ipToNumber(currentIP) <= ipToNumber('255.255.255.255')) {
-      const emptyPEC: PEC = {
-        id: `pec_empty_${newPECs.length + 1}`,
-        range: { start: currentIP, end: '255.255.255.255' },
-        configObjects: [],
-        contributingPrefixes: []
-      };
-      newPECs.push(emptyPEC);
-    }
-
-    this.pecs.push(...newPECs);
-  }
-
   // IP 地址递增
   private incrementIP(ip: string): string {
     const num = ipToNumber(ip);
-    return numberToIp(num + 1);
+    return this.numberToIp(num + 1);
   }
 
   // IP 地址递减
   private decrementIP(ip: string): string {
     const num = ipToNumber(ip);
-    return numberToIp(num - 1);
+    return this.numberToIp(num - 1);
   }
 
-  // 获取最小 IP
-  private minIP(ip1: string, ip2: string): string {
-    return ipToNumber(ip1) < ipToNumber(ip2) ? ip1 : ip2;
-  }
-
-  // 获取最大 IP
-  private maxIP(ip1: string, ip2: string): string {
-    return ipToNumber(ip1) > ipToNumber(ip2) ? ip1 : ip2;
+  // 数字转IP地址
+  private numberToIp(num: number): string {
+    if (num < 0) num = 0;
+    if (num > 4294967295) num = 4294967295;
+    
+    const octets = [];
+    let tempNum = num;
+    for (let i = 0; i < 4; i++) {
+      octets.unshift(tempNum & 255);
+      tempNum = tempNum >> 8;
+    }
+    return octets.join('.');
   }
 
   // 获取 PEC 统计信息

@@ -1,3 +1,5 @@
+
+
 import { ConfigObject, Prefix, MatchCondition, SetAction } from '../types/network';
 
 export class ConfigParser {
@@ -28,7 +30,7 @@ export class ConfigParser {
     let match;
 
     while ((match = prefixListRegex.exec(this.content)) !== null) {
-      const [, name, seq, action, network, ge1, geVal1, le1, leVal1] = match;
+      const [, name, seq, , network, ge1, geVal1, le1, leVal1] = match;
       
       // 解析网络地址和掩码
       const [ip, maskStr] = network.split('/');
@@ -176,7 +178,7 @@ export class ConfigParser {
     let match;
 
     while ((match = bgpRegex.exec(this.content)) !== null) {
-      const [, asn, bgpConfig] = match;
+      const [, asn] = match;
       
       const configObj: ConfigObject = {
         id: `bgp_as_${asn}`,
